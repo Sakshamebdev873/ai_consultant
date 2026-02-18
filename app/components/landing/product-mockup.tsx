@@ -34,7 +34,7 @@ const ScrambleText = ({ text }: { text: string }) => {
   };
 
   return (
-    <motion.span onViewportEnter={scramble} className="font-mono">
+    <motion.span onViewportEnter={scramble} className="font-mono ">
       {displayText}
     </motion.span>
   );
@@ -61,9 +61,9 @@ export const ProductField = () => {
     <section 
       ref={sectionRef}
       onMouseMove={handleMouseMove}
-      className="relative w-full min-h-screen overflow-hidden flex items-center justify-center  py-20"
+      className="relative w-full min-h-screen overflow-hidden flex items-center justify-center py-20 "
     >
-      {/* 1. THE RADAR PULSE (Imagination Feature) */}
+      {/* 1. THE RADAR PULSE (Color change to Emerald) */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <motion.div 
           animate={{ 
@@ -71,12 +71,19 @@ export const ProductField = () => {
             opacity: [0, 0.2, 0] 
           }}
           transition={{ duration: 4, repeat: Infinity, ease: "easeOut" }}
-          className="w-[300px] h-[300px] rounded-full border border-primary/50 shadow-[0_0_100px_rgba(99,102,241,0.2)]"
+          className="w-[300px] h-[300px] rounded-full border border-emerald-500/50 shadow-[0_0_100px_rgba(16,185,129,0.2)]"
         />
       </div>
 
       {/* 2. NEURAL BACKGROUND CONNECTIONS */}
-      <svg className="absolute inset-0 w-full h-full opacity-20 pointer-events-none">
+      {/* <svg className="absolute inset-0 w-full h-full opacity-20 pointer-events-none">
+        <defs>
+          <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="transparent" />
+            <stop offset="50%" stopColor="#10b981" />
+            <stop offset="100%" stopColor="transparent" />
+          </linearGradient>
+        </defs>
         {thoughtNodes.map((node, i) => (
           <NeuralLine 
             key={i} 
@@ -87,7 +94,7 @@ export const ProductField = () => {
             smoothY={smoothY} 
           />
         ))}
-      </svg>
+      </svg> */}
 
       {/* 3. FLOATING THOUGHT NODES */}
       <div className="absolute inset-0 z-20 pointer-events-none">
@@ -108,41 +115,41 @@ export const ProductField = () => {
           initial={{ rotate: 0 }}
           animate={{ rotate: 360 }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          className="absolute -z-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl"
+          className="absolute -z-10 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl"
         />
 
         <motion.div
           whileHover={{ scale: 1.1, rotate: [0, -10, 10, 0] }}
           className="mb-8 p-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md cursor-none"
         >
-          <Brain className="w-16 h-16 text-primary animate-pulse" />
+          <Brain className="w-16 h-16 text-emerald-500 animate-pulse" />
         </motion.div>
 
-        <h2 className="text-4xl md:text-7xl font-bold tracking-tighter text-white">
+        <h2 className="text-4xl md:text-7xl font-bold tracking-tighter text-white!">
           <ScrambleText text="Decisions, not suggestions." />
         </h2>
 
         <motion.p
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 0.5 }}
-          className="mt-6 max-w-xl text-slate-400 text-lg leading-relaxed"
+          className="mt-6 max-w-xl text-neutral-400 text-lg leading-relaxed"
         >
-          Our neural engine silently parses <span className="text-white">4,000+ variables</span> 
+          Our neural engine silently parses <span className="text-white">4,000+ variables </span> 
           across the AI marketplace to surface the single point of truth for your stack.
         </motion.p>
 
-        {/* INTERACTIVE MATCH IDENTIFIER */}
+        {/* INTERACTIVE MATCH IDENTIFIER (Color change to Emerald) */}
         <div className="mt-16 relative group cursor-pointer">
             <motion.div 
                 initial={{ width: 0 }}
                 whileInView={{ width: "240px" }}
-                className="h-px bg-gradient-to-r from-transparent via-primary to-transparent mx-auto"
+                className="h-px bg-gradient-to-r from-transparent via-emerald-500 to-transparent mx-auto"
             />
             <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
-                className="mt-6 flex items-center justify-center gap-3 text-xs font-mono uppercase tracking-[0.4em] text-primary"
+                className="mt-6 flex items-center justify-center gap-3 text-xs font-mono uppercase tracking-[0.4em] text-emerald-500"
             >
                 <div className="flex gap-1">
                     {[1, 2, 3].map(i => (
@@ -150,7 +157,7 @@ export const ProductField = () => {
                             key={i}
                             animate={{ opacity: [0, 1, 0] }}
                             transition={{ repeat: Infinity, delay: i * 0.2 }}
-                            className="w-1 h-1 bg-primary rounded-full"
+                            className="w-1 h-1 bg-emerald-500 rounded-full"
                         />
                     ))}
                 </div>
@@ -184,7 +191,6 @@ const NeuralLine = ({ x, y, smoothX, smoothY, index }: any) => {
 
 // --- HELPER: THOUGHT NODE ---
 const ThoughtNode = ({ node, smoothX, smoothY, index }: any) => {
-  // Parallax speed based on index (simulating depth)
   const depth = (index % 3) + 1;
   const moveX = useTransform(smoothX, [-1, 1], [node.x - 5 * depth, node.x + 5 * depth]);
   const moveY = useTransform(smoothY, [-1, 1], [node.y - 5 * depth, node.y + 5 * depth]);
@@ -201,11 +207,11 @@ const ThoughtNode = ({ node, smoothX, smoothY, index }: any) => {
     >
       <motion.div 
         whileHover={{ scale: 1.2, color: "#fff" }}
-        className="p-3 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-slate-500 transition-colors group-hover:border-primary/50 group-hover:shadow-[0_0_20px_rgba(99,102,241,0.3)]"
+        className="p-3 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-neutral-500 transition-colors group-hover:border-emerald-500/50 group-hover:shadow-[0_0_20px_rgba(16,185,129,0.3)]"
       >
         {node.icon}
       </motion.div>
-      <span className="text-[10px] md:text-xs font-mono uppercase tracking-widest text-slate-500 group-hover:text-primary transition-colors whitespace-nowrap bg-black/50 px-2 py-1 rounded">
+      <span className="text-[10px] md:text-xs font-mono uppercase tracking-widest text-neutral-500 group-hover:text-emerald-400 transition-colors whitespace-nowrap bg-black/50 px-2 py-1 rounded">
         {node.text}
       </span>
     </motion.div>

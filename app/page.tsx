@@ -1,18 +1,20 @@
 'use client'
 
 import { useRef } from "react";
+import { useMotionValue } from "framer-motion";
+
+// Components
 import { Navbar } from "@/components/layout/navbar";
 import { HeroSection } from "@/components/landing/hero-section";
 import { ProductField } from "@/components/landing/product-mockup";
-import { BackgroundBlobs } from "@/components/landing/background-blobs";
+import { BackgroundBlobs } from "@/components/landing/background-blobs"; // You might want to remove this if you want a strict grid
 import { InteractiveGrid } from "@/components/ui/InteractiveGrid";
-import { useMotionValue } from "framer-motion";
-import { IndustryMatrix } from "./components/landing/IndustryMatrix";
-import { StrategyOrchestrator } from "./components/landing/IndustryOrchestrator";
-import { MarketDecryptor } from "./components/landing/MarketDecrypter";
-import { CognitiveBridge } from "./components/landing/CognitiveBridge";
-import { ResultEngine } from "./components/landing/ResultEngine";
-import { Footer } from "./components/layout/Footer";
+import { IndustryMatrix } from "@/components/landing/IndustryMatrix";
+import { StrategyOrchestrator } from "@/components/landing/IndustryOrchestrator";
+import  {MarketDecryptor}  from "@/components/landing/MarketDecrypter";
+import { CognitiveBridge } from "@/components/landing/CognitiveBridge";
+import { ResultEngine } from "@/components/landing/ResultEngine";
+import { Footer } from "@/components/layout/Footer";
 
 export default function LandingPage() {
   const containerRef = useRef<HTMLElement>(null);
@@ -35,30 +37,46 @@ export default function LandingPage() {
     <main 
       ref={containerRef}
       onMouseMove={handleMouseMove}
-      className="min-h-screen relative overflow-hidden bg-background"
+      className="min-h-screen relative overflow-hidden bg-black text-white selection:bg-emerald-500 selection:text-black font-sans"
     >
-      {/* BACKGROUND LAYER (Fixed so it follows scroll) */}
+      {/* BACKGROUND LAYER */}
+      {/* We use z-0 to keep it behind everything. 
+          The 'pointer-events-none' ensures clicks pass through to the UI. */}
       <div className="fixed inset-0 z-0 pointer-events-none">
+        {/* Optional: Add the static CSS grid here if InteractiveGrid is too heavy 
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:48px_48px]" />
+        */}
+        
         <InteractiveGrid mouseX={mX} mouseY={mY} />
-        <BackgroundBlobs />
-        <div className="absolute inset-0 bg-noise opacity-[0.03] mix-blend-overlay" />
+        
+        {/* Reduced opacity for blobs to maintain the sharp 'technical' look */}
+        <div className="opacity-20"> 
+           <BackgroundBlobs />
+        </div>
+        
+        {/* Noise overlay for that 'analog monitor' feel */}
+        <div className="absolute inset-0 bg-noise opacity-[0.05] mix-blend-overlay" />
       </div>
 
       {/* UI LAYER */}
-      <Navbar />
+      <div className="relative z-10">
+        <Navbar />
 
-      <section className="relative z-10 pt-32 pb-20 px-6 max-w-7xl mx-auto flex flex-col items-center">
-        {/* Pass mouse values to Hero so it can handle 3D parallax without re-tracking */}
-        <HeroSection globalMouseX={mX} globalMouseY={mY} />
+        <section className="pt-32 pb-20 px-6 max-w-7xl mx-auto flex flex-col items-center">
+          {/* Hero receives global mouse coordinates for parallax effects */}
+          <HeroSection globalMouseX={mX} globalMouseY={mY} />
+          <ProductField />
+        </section>
+
+        {/* Stacked Sections */}
+        <IndustryMatrix />
+        <StrategyOrchestrator />
+        {/* <MarketDecryptor /> */}
+        <CognitiveBridge />
+        <ResultEngine />
         
-        <ProductField />
-      </section>
-        <IndustryMatrix/>
-        <StrategyOrchestrator/>
-        <MarketDecryptor/>
-        <CognitiveBridge/>
-        <ResultEngine/>
-        <Footer/>
+        <Footer />
+      </div>
 
     </main>
   );

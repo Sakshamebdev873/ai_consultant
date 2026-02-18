@@ -1,219 +1,268 @@
-"use client";
+'use client';
 
-import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Send, Bot, User, Sparkles, Building2, ShoppingCart } from "lucide-react";
-import { cn } from "@/lib/utlis";
+import Link from 'next/link';
+import { useState } from 'react';
 
-// Mock Data for Tool Recommendation
-const TOOL_RECOMMENDATION = {
-  id: "tool-1",
-  name: "FinBot Pro",
-  price: "$49/mo",
-  compliance: ["SOC2", "GDPR"],
-  description: "Automated financial reconciliation with human-in-the-loop validation.",
-};
+export default function ConsultationPage() {
+  const [activeStep, setActiveStep] = useState(1);
+  const [formData, setFormData] = useState({
+    industry: '',
+    companySize: '',
+    role: '',
+    problem: '',
+    goal: '',
+  });
 
-type Message = {
-  id: string;
-  role: "user" | "ai";
-  content: string;
-  attachment?: any; // For tool cards
-};
-
-export default function ConsultantInterface() {
-  const [input, setInput] = useState("");
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "1",
-      role: "ai",
-      content: "Hello. I am your specialized AI Consultant. To begin, please tell me your industry and the primary problem you are trying to solve.",
-    },
-  ]);
-  const [isTyping, setIsTyping] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  // Auto-scroll to bottom
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
-
-  const handleSend = async () => {
-    if (!input.trim()) return;
-
-    // Add User Message
-    const userMsg: Message = { id: Date.now().toString(), role: "user", content: input };
-    setMessages((prev) => [...prev, userMsg]);
-    setInput("");
-    setIsTyping(true);
-
-    // Simulate AI Latency & "Thinking"
-    setTimeout(() => {
-      setIsTyping(false);
-      
-      // Simulated Logic: If user mentions "finance", show a tool card
-      const isFinance = input.toLowerCase().includes("finance") || input.toLowerCase().includes("bank");
-      
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "ai",
-        content: isFinance 
-            ? "Based on your requirements for banking compliance, I've analyzed 40+ tools. 'FinBot Pro' appears to be the safest and most efficient choice." 
-            : "I understand. Could you elaborate on your budget constraints and team size?",
-        attachment: isFinance ? TOOL_RECOMMENDATION : null
-      };
-      
-      setMessages((prev) => [...prev, aiResponse]);
-    }, 1500);
-  };
+  const handleNext = () => setActiveStep((prev) => prev + 1);
 
   return (
-    <div className="flex h-screen bg-background text-foreground overflow-hidden">
+    <div className="min-h-screen bg-black text-white font-mono flex overflow-hidden">
       
-      {/* Sidebar (Context) */}
-      <aside className="w-80 border-r border-white/10 bg-[#0A0F1E] hidden md:flex flex-col p-6">
-        <div className="flex items-center gap-2 mb-8 text-primary font-bold">
-            <Sparkles className="w-5 h-5" /> Decision Engine
-        </div>
-        
-        <div className="space-y-6">
-            <div className="space-y-2">
-                <label className="text-xs font-semibold text-slate-500 uppercase">Current Domain</label>
-                <div className="flex items-center gap-3 p-3 bg-white/5 rounded-lg border border-white/5">
-                    <Building2 className="w-5 h-5 text-blue-400" />
-                    <span className="text-sm font-medium">General / Discovery</span>
-                </div>
-            </div>
+      {/* LEFT PANEL: The AI "Consultant Agent" Observer */}
+      <div className="hidden lg:flex flex-col w-[30%] border-r border-neutral-800 bg-neutral-950/50 p-8 relative">
+        {/* Animated Background Grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,255,127,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,255,127,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
 
-            <div className="space-y-2">
-                <label className="text-xs font-semibold text-slate-500 uppercase">Consultation Goals</label>
-                <div className="space-y-2">
-                    {["Identify Problem", "Filter Compliance", "Compare ROI"].map((step, i) => (
-                        <div key={step} className="flex items-center gap-3 text-sm text-slate-400">
-                            <div className={cn("w-2 h-2 rounded-full", i === 0 ? "bg-green-500 animate-pulse" : "bg-slate-700")} />
-                            {step}
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </div>
-      </aside>
+        <div className="z-10 h-full flex flex-col">
+          <div className="mb-8">
+            <h2 className="text-xs font-bold text-emerald-500 tracking-widest uppercase mb-2">
+              <span className="w-2 h-2 bg-emerald-500 inline-block mr-2 animate-pulse rounded-full"></span>
+              Consultant_Agent_V1
+            </h2>
+            <div className="h-[1px] w-full bg-emerald-900/50"></div>
+          </div>
 
-      {/* Main Chat Area */}
-      <main className="flex-1 flex flex-col relative">
-        {/* Header */}
-        <header className="h-16 border-b border-white/5 flex items-center px-6 justify-between bg-background/50 backdrop-blur-md sticky top-0 z-10">
-            <h2 className="font-semibold text-slate-200">New Consultation Session</h2>
-            <div className="text-xs text-slate-500">Session ID: #8829-XJ</div>
+          {/* Simulated System Logs */}
+          <div className="flex-1 overflow-hidden font-mono text-[10px] text-neutral-500 space-y-2 leading-relaxed opacity-80">
+            <p className="text-emerald-500/50"> [SYSTEM] Initializing intake protocol...</p>
+            <p> [AGENT] Awaiting user inputs for vector classification.</p>
+            {activeStep > 1 && (
+              <>
+                <p className="text-white"> [INPUT_RX] Business context received.</p>
+                <p> [PROCESS] Analyzing sector constraints...</p>
+                <p> [PROCESS] Mapping maturity model...</p>
+              </>
+            )}
+            {formData.industry && (
+               <p className="text-emerald-400"> [DETECT] Industry Vector: {formData.industry.toUpperCase()}</p>
+            )}
+            <div className="animate-pulse">_</div>
+          </div>
+
+          {/* Bottom Stats */}
+          <div className="border-t border-neutral-800 pt-4 mt-4 grid grid-cols-2 gap-4">
+            <div>
+              <div className="text-[9px] uppercase text-neutral-600">Tokens Processed</div>
+              <div className="text-lg text-neutral-300">0</div>
+            </div>
+            <div>
+              <div className="text-[9px] uppercase text-neutral-600">Model Confidence</div>
+              <div className="text-lg text-emerald-500">--%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT PANEL: The Input Terminal */}
+      <div className="w-full lg:w-[70%] flex flex-col relative overflow-y-auto">
+        <header className="p-8 border-b border-neutral-800 flex justify-between items-center bg-black/80 backdrop-blur-sm sticky top-0 z-50">
+          <div>
+             <h1 className="text-xl font-bold tracking-tight">Diagnostic Sequence</h1>
+             <p className="text-xs text-neutral-500 mt-1">Provide operational parameters for AI architecture.</p>
+          </div>
+          <div className="flex items-center gap-2">
+             <span className="text-xs text-neutral-500">STEP {activeStep} / 3</span>
+             <div className="w-24 h-1 bg-neutral-800 rounded-full overflow-hidden">
+               <div 
+                 className="h-full bg-white transition-all duration-500 ease-out"
+                 style={{ width: `${(activeStep / 3) * 100}%` }}
+               />
+             </div>
+          </div>
         </header>
 
-        {/* Messages List */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
-            <AnimatePresence>
-                {messages.map((msg) => (
-                    <motion.div 
-                        key={msg.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={cn("flex gap-4 max-w-3xl", msg.role === "user" ? "ml-auto flex-row-reverse" : "")}
+        <main className="flex-1 p-8 lg:p-16 max-w-4xl mx-auto w-full">
+          
+          {/* STEP 1: Business Context [Cite: 5] */}
+          {activeStep === 1 && (
+            <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="space-y-6">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-400 border-l-2 border-emerald-500 pl-3">
+                  01 // Business Context
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-2">
+                    <label className="text-xs uppercase text-neutral-500">Target Industry</label>
+                    <select 
+                      className="w-full bg-neutral-900 border border-neutral-800 p-4 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 outline-none transition-all text-neutral-200"
+                      onChange={(e) => setFormData({...formData, industry: e.target.value})}
                     >
-                        {/* Avatar */}
-                        <div className={cn(
-                            "w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-1",
-                            msg.role === "ai" ? "bg-primary/20 text-primary" : "bg-white/10 text-white"
-                        )}>
-                            {msg.role === "ai" ? <Bot size={16} /> : <User size={16} />}
-                        </div>
+                      <option value="">Select Sector...</option>
+                      <option value="fintech">Fintech & Banking</option>
+                      <option value="healthcare">Healthcare & Bio</option>
+                      <option value="ecommerce">Retail & E-commerce</option>
+                      <option value="saas">Enterprise SaaS</option>
+                    </select>
+                  </div>
 
-                        {/* Bubble */}
-                        <div className={cn(
-                            "space-y-2",
-                            msg.role === "user" ? "items-end flex flex-col" : ""
-                        )}>
-                            <div className={cn(
-                                "px-4 py-3 rounded-2xl text-sm leading-relaxed",
-                                msg.role === "ai" 
-                                    ? "bg-white/5 border border-white/5 text-slate-300 rounded-tl-none" 
-                                    : "bg-primary text-white rounded-tr-none"
-                            )}>
-                                {msg.content}
-                            </div>
+                  <div className="space-y-2">
+                    <label className="text-xs uppercase text-neutral-500">Organization Scale</label>
+                    <select 
+                      className="w-full bg-neutral-900 border border-neutral-800 p-4 text-sm focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/50 outline-none transition-all text-neutral-200"
+                      onChange={(e) => setFormData({...formData, companySize: e.target.value})}
+                    >
+                      <option value="">Select Range...</option>
+                      <option value="startup">Startup (1-10)</option>
+                      <option value="smb">Growth (11-50)</option>
+                      <option value="mid">Mid-Market (51-200)</option>
+                      <option value="enterprise">Enterprise (200+)</option>
+                    </select>
+                  </div>
 
-                            {/* Attachment (Tool Card) */}
-                            {msg.attachment && (
-                                <motion.div 
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    className="w-full max-w-sm bg-[#111827] border border-white/10 rounded-xl p-4 mt-2 overflow-hidden relative group"
-                                >
-                                    <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    <div className="flex justify-between items-start mb-3">
-                                        <div>
-                                            <h4 className="font-bold text-white">{msg.attachment.name}</h4>
-                                            <span className="text-xs text-slate-400 bg-white/5 px-2 py-1 rounded mt-1 inline-block">Recommended</span>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="text-lg font-bold text-primary">{msg.attachment.price}</div>
-                                        </div>
-                                    </div>
-                                    <p className="text-xs text-slate-400 mb-4">{msg.attachment.description}</p>
-                                    <div className="flex gap-2 mb-4">
-                                        {msg.attachment.compliance.map((tag: string) => (
-                                            <span key={tag} className="text-[10px] uppercase font-bold text-green-400 bg-green-400/10 px-2 py-1 rounded">
-                                                {tag}
-                                            </span>
-                                        ))}
-                                    </div>
-                                    <button className="w-full py-2 bg-white text-black text-xs font-bold rounded hover:bg-slate-200 transition-colors flex items-center justify-center gap-2">
-                                        <ShoppingCart size={14} /> Add to Selection
-                                    </button>
-                                </motion.div>
-                            )}
-                        </div>
-                    </motion.div>
-                ))}
-            </AnimatePresence>
-
-            {/* Typing Indicator */}
-            {isTyping && (
-                <div className="flex gap-4">
-                     <div className="w-8 h-8 rounded-full bg-primary/20 text-primary flex items-center justify-center">
-                        <Bot size={16} />
+                   <div className="space-y-2 md:col-span-2">
+                    <label className="text-xs uppercase text-neutral-500">Primary Role</label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {['Technical', 'Product', 'Executive', 'Operations'].map((role) => (
+                        <button
+                          key={role}
+                          onClick={() => setFormData({...formData, role})}
+                          className={`p-4 border text-xs uppercase tracking-wider transition-all
+                            ${formData.role === role 
+                              ? 'bg-white text-black border-white' 
+                              : 'bg-transparent border-neutral-800 text-neutral-400 hover:border-neutral-600'
+                            }`}
+                        >
+                          {role}
+                        </button>
+                      ))}
                     </div>
-                    <div className="bg-white/5 border border-white/5 px-4 py-3 rounded-2xl rounded-tl-none flex items-center gap-1">
-                        <span className="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                        <span className="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                        <span className="w-2 h-2 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
-                    </div>
+                  </div>
                 </div>
-            )}
-        </div>
+              </div>
 
-        {/* Input Area */}
-        <div className="p-6 pt-0 bg-gradient-to-t from-background via-background to-transparent">
-            <div className="relative">
-                <input
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                    placeholder="Describe your business problem..."
-                    className="w-full bg-[#111827] border border-white/10 rounded-xl px-4 py-4 pr-12 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50 placeholder:text-slate-600 shadow-2xl"
-                />
+              <div className="pt-8 flex justify-end">
                 <button 
-                    onClick={handleSend}
-                    className="absolute right-2 top-2 p-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={!input.trim()}
+                  onClick={handleNext}
+                  className="bg-white text-black px-8 py-4 font-bold uppercase tracking-widest hover:bg-neutral-200 transition-colors flex items-center gap-2 group"
                 >
-                    <Send size={16} />
+                  <span>Proceed to Maturity Check</span>
+                  <span className="group-hover:translate-x-1 transition-transform">→</span>
                 </button>
+              </div>
             </div>
-            <p className="text-center text-[10px] text-slate-600 mt-3">
-                AI Agent can make mistakes. Please verify critical compliance data manually.
-            </p>
-        </div>
-      </main>
+          )}
+
+          {/* STEP 2: Tech Maturity [Cite: 5] */}
+          {activeStep === 2 && (
+            <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+               <div className="space-y-6">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-400 border-l-2 border-emerald-500 pl-3">
+                  02 // Technical Baseline
+                </h3>
+
+                <div className="space-y-8">
+                  <div className="space-y-3">
+                    <label className="text-xs uppercase text-neutral-500">Current Tech Stack (Separate with commas)</label>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. AWS, React, Python, Postgres..."
+                      className="w-full bg-neutral-900 border border-neutral-800 p-4 text-sm focus:border-emerald-500 outline-none text-white font-mono"
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-xs uppercase text-neutral-500">Data Readiness</label>
+                    <div className="grid gap-4">
+                      {[
+                        'Unstructured / Raw (PDFs, Docs)',
+                        'Semi-Structured (NoSQL, APIs)',
+                        'Structured (SQL Warehouses)',
+                        'Vectorized / Embedding Ready'
+                      ].map((level, idx) => (
+                        <label key={idx} className="flex items-center gap-4 p-4 border border-neutral-800 hover:bg-neutral-900 cursor-pointer group transition-colors">
+                          <div className="w-4 h-4 rounded-full border border-neutral-600 group-hover:border-emerald-500 flex items-center justify-center">
+                            <div className="w-2 h-2 rounded-full bg-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </div>
+                          <span className="text-sm text-neutral-300 font-mono">{level}</span>
+                          <input type="radio" name="data_maturity" className="hidden" />
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-8 flex justify-between">
+                <button onClick={() => setActiveStep(1)} className="text-neutral-500 hover:text-white uppercase text-xs tracking-widest">
+                   ← Back
+                </button>
+                <button 
+                  onClick={handleNext}
+                  className="bg-white text-black px-8 py-4 font-bold uppercase tracking-widest hover:bg-neutral-200 transition-colors flex items-center gap-2 group"
+                >
+                  <span>Analyze Problem</span>
+                  <span className="group-hover:translate-x-1 transition-transform">→</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+           {/* STEP 3: Problem Definition [Cite: 5] */}
+           {activeStep === 3 && (
+            <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+               <div className="space-y-6">
+                <h3 className="text-sm font-bold uppercase tracking-widest text-neutral-400 border-l-2 border-emerald-500 pl-3">
+                  03 // Intelligence Gap
+                </h3>
+
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-xs uppercase text-neutral-500">Primary Objective</label>
+                    <div className="grid grid-cols-2 gap-4">
+                      {['Cost Reduction', 'Process Automation', 'Prediction/Forecasting', 'Customer Experience'].map((goal) => (
+                        <button
+                          key={goal}
+                          onClick={() => setFormData({...formData, goal})}
+                          className={`p-4 border text-xs uppercase tracking-wider transition-all text-left
+                            ${formData.goal === goal 
+                              ? 'bg-neutral-800 border-emerald-500 text-white' 
+                              : 'bg-transparent border-neutral-800 text-neutral-400 hover:border-neutral-600'
+                            }`}
+                        >
+                          {goal}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-xs uppercase text-neutral-500">Describe the Friction Point</label>
+                    <textarea 
+                      rows={6}
+                      placeholder="Describe the specific workflow you want to automate. Example: 'We spend 20 hours a week manually extracting data from invoices and need to automate this flow...'"
+                      className="w-full bg-neutral-900 border border-neutral-800 p-4 text-sm focus:border-emerald-500 outline-none text-white font-mono resize-none leading-relaxed"
+                      onChange={(e) => setFormData({...formData, problem: e.target.value})}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-8 flex justify-between items-center">
+                 <button onClick={() => setActiveStep(2)} className="text-neutral-500 hover:text-white uppercase text-xs tracking-widest">
+                   ← Back
+                </button>
+                <button 
+                  className="bg-emerald-500 text-black px-8 py-4 font-bold uppercase tracking-widest hover:bg-emerald-400 transition-colors flex items-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)]"
+                >
+                  <Link href={'/report'} className="animate-pulse">INITIATE ANALYSIS</Link>
+                </button>
+              </div>
+            </div>
+          )}
+
+        </main>
+      </div>
     </div>
   );
 }
