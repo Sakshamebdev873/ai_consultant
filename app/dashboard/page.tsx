@@ -1,219 +1,318 @@
-"use client";
+'use client';
 
-import Link from "next/link";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import type { AuthUser } from '@/types/auth';
+
+// ─── Stat card ────────────────────────────────────────────────────────────────
+
+function StatCard({
+  label, value, sub, accent,
+}: {
+  label: string; value: string | number; sub?: string; accent?: boolean;
+}) {
+  return (
+    <div className="border border-neutral-800 bg-neutral-950 p-6 flex flex-col gap-2 hover:border-neutral-600 transition-colors">
+      <div className="text-[10px] uppercase tracking-widest text-neutral-500">{label}</div>
+      <div className={`text-3xl font-bold ${accent ? 'text-emerald-400' : 'text-white'}`}>
+        {value}
+      </div>
+      {sub && <div className="text-xs text-neutral-600">{sub}</div>}
+    </div>
+  );
+}
+
+// ─── Profile row ──────────────────────────────────────────────────────────────
+
+function ProfileRow({ label, value }: { label: string; value?: string | number }) {
+  return (
+    <div className="flex justify-between items-center py-3 border-b border-neutral-900 last:border-0">
+      <span className="text-[10px] uppercase tracking-widest text-neutral-500">{label}</span>
+      <span className="text-sm text-neutral-200 font-mono">
+        {value ?? <span className="text-neutral-700">—</span>}
+      </span>
+    </div>
+  );
+}
+
+// ─── Quick action card ────────────────────────────────────────────────────────
+
+function ActionCard({
+  icon, title, desc, href,
+}: {
+  icon: string; title: string; desc: string; href: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="border border-neutral-800 bg-neutral-950 p-6 flex flex-col gap-3
+        hover:border-white hover:bg-neutral-900 transition-all group"
+    >
+      <span className="text-2xl">{icon}</span>
+      <div>
+        <div className="text-sm font-bold uppercase tracking-widest mb-1 group-hover:text-emerald-400 transition-colors">
+          {title}
+        </div>
+        <div className="text-xs text-neutral-500 leading-relaxed">{desc}</div>
+      </div>
+      <span className="text-neutral-600 group-hover:text-white transition-colors text-sm mt-auto">
+        → Access
+      </span>
+    </Link>
+  );
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  return (
-    <div className="min-h-screen bg-black text-white font-mono flex overflow-hidden">
-      {/* SIDEBAR NAVIGATION */}
-      <div className="w-20 lg:w-64 border-r border-neutral-800 flex flex-col justify-between p-6 bg-neutral-950">
-        <div className="space-y-8">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-emerald-500 rounded-sm flex items-center justify-center font-bold text-black">
-              AI
-            </div>
-            <span className="hidden lg:block font-bold tracking-widest">
-              CONSULTANT
-            </span>
-          </div>
+  const router = useRouter();
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [mounted, setMounted] = useState(false);
 
-          <nav className="space-y-2">
-            <button className="w-full text-left px-4 py-3 text-xs uppercase tracking-widest bg-neutral-900 border-l-2 border-emerald-500 text-white">
-              Mission Control
-            </button>
-            <button className="w-full text-left px-4 py-3 text-xs uppercase tracking-widest text-neutral-500 hover:text-white border-l-2 border-transparent transition-colors">
-              Agent Logs
-            </button>
-            <button className="w-full text-left px-4 py-3 text-xs uppercase tracking-widest text-neutral-500 hover:text-white border-l-2 border-transparent transition-colors">
-              Cost Ledger
-            </button>
-            <button className="w-full text-left px-4 py-3 text-xs uppercase tracking-widest text-neutral-500 hover:text-white border-l-2 border-transparent transition-colors">
-              Settings
-            </button>
-          </nav>
-        </div>
+  useEffect(() => {
+    setMounted(true);
+    const stored = localStorage.getItem('user');
+    const token  = localStorage.getItem('access_token');
 
-        <div className="flex items-center gap-3 opacity-60 hover:opacity-100 cursor-pointer transition-opacity">
-          <div className="w-8 h-8 rounded-full bg-neutral-800 border border-neutral-700"></div>
-          <div className="hidden lg:block">
-            <div className="text-xs font-bold">Alex Chen</div>
-            <div className="text-[10px] text-neutral-500">
-              CTO // FINTECH_01
-            </div>
-          </div>
+    if (!token || !stored) {
+      router.push('/login');
+      return;
+    }
+
+    try {
+      setUser(JSON.parse(stored) as AuthUser);
+    } catch {
+      router.push('/login');
+    }
+  }, [router]);
+
+  function handleLogout() {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user');
+    router.push('/login');
+  }
+
+  if (!mounted || !user) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center font-mono">
+        <div className="flex items-center gap-3 text-neutral-500 text-xs uppercase tracking-widest">
+          <span className="inline-block w-3 h-3 border border-white border-t-transparent rounded-full animate-spin" />
+          AUTHENTICATING SESSION...
         </div>
       </div>
+    );
+  }
 
-      {/* MAIN DASHBOARD CONTENT */}
-      <div className="flex-1 overflow-y-auto bg-black relative">
-        {/* Background Grid */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
+  const initials = user.full_name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
 
-        <header className="p-8 border-b border-neutral-800 flex justify-between items-center bg-black/80 backdrop-blur-md sticky top-0 z-20">
+  const joinDate = new Date(user.created_at).toLocaleDateString('en-US', {
+    year: 'numeric', month: 'short', day: 'numeric',
+  });
+
+  return (
+    <div className="min-h-screen bg-black text-white font-mono">
+
+      {/* ── TOP NAV ──────────────────────────────────────────────────────────── */}
+      <nav className="border-b border-neutral-800 bg-neutral-950 px-8 py-4 flex items-center justify-between sticky top-0 z-50">
+        <div className="flex items-center gap-6">
+          <span className="text-sm font-bold tracking-widest uppercase">AI Consultant.io</span>
+          <div className="hidden md:flex items-center gap-1 text-[10px] text-neutral-500">
+            <div className="w-1.5 h-1.5 bg-emerald-500 animate-pulse rounded-full" />
+            <span>SYSTEM NOMINAL</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-6">
+          {/* Nav links */}
+          <div className="hidden md:flex items-center gap-4 text-xs uppercase tracking-widest text-neutral-500">
+            <Link href="/report"   className="hover:text-white transition-colors">New Report</Link>
+            <Link href="/roadmap"  className="hover:text-white transition-colors">Roadmap</Link>
+            <Link href="/dashboard" className="text-white border-b border-white pb-0.5">Dashboard</Link>
+          </div>
+
+          {/* User chip */}
+          <div className="flex items-center gap-3 border border-neutral-800 px-3 py-1.5">
+            <div className="w-6 h-6 bg-white text-black text-[10px] font-bold flex items-center justify-center">
+              {initials}
+            </div>
+            <span className="text-xs hidden sm:block">{user.full_name.split(' ')[0]}</span>
+          </div>
+
+          <button
+            onClick={handleLogout}
+            className="text-[10px] uppercase tracking-widest text-neutral-500
+              hover:text-white border border-neutral-800 hover:border-white px-3 py-1.5 transition-all"
+          >
+            Logout
+          </button>
+        </div>
+      </nav>
+
+      <div className="max-w-6xl mx-auto px-8 py-12 space-y-12">
+
+        {/* ── HEADER ─────────────────────────────────────────────────────────── */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4
+          border-b border-neutral-800 pb-8">
           <div>
-            <h1 className="text-2xl font-bold">
-              Project Status: <span className="text-emerald-500">ACTIVE</span>
-            </h1>
-            <p className="text-xs text-neutral-500 mt-1 uppercase tracking-widest">
-              Phase 01: Infrastructure Provisioning in Progress
+            <p className="text-xs text-neutral-500 uppercase tracking-widest mb-2">
+              [ SESSION_ACTIVE ]
             </p>
+            <h1 className="text-4xl font-bold tracking-tight">
+              WELCOME BACK,<br />
+              <span className="text-neutral-400">{user.full_name.toUpperCase()}</span>
+            </h1>
           </div>
-          <div className="flex gap-4">
-            <div className="text-right">
-              <div className="text-[10px] text-neutral-500 uppercase">
-                Server Time
-              </div>
-              <div className="font-mono text-sm">14:02:55 UTC</div>
-            </div>
-            <button className="bg-white text-black px-4 py-2 font-bold text-xs uppercase hover:bg-neutral-200">
-              Pause Workflow
-            </button>
+          <div className="text-right">
+            <div className="text-[10px] text-neutral-600 uppercase tracking-widest">Operator since</div>
+            <div className="text-sm text-neutral-400">{joinDate}</div>
           </div>
-        </header>
+        </div>
 
-        <main className="p-8 grid grid-cols-1 lg:grid-cols-3 gap-8 relative z-10">
-          {/* CARD 1: LIVE METRICS (Simulated) */}
+        {/* ── STATS ──────────────────────────────────────────────────────────── */}
+        <div>
+          <p className="text-[10px] uppercase tracking-widest text-neutral-600 mb-4">
+            // Metrics
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-neutral-800">
+            <StatCard
+              label="Reports Generated"
+              value={user.reports_generated}
+              sub="Total analyses run"
+              accent={user.reports_generated > 0}
+            />
+            <StatCard
+              label="Company Size"
+              value={user.company_size ?? '—'}
+              sub="Organisation tier"
+            />
+            <StatCard
+              label="Industry Exp."
+              value={user.years_in_industry != null ? `${user.years_in_industry} yrs` : '—'}
+              sub="Years in battery industry"
+            />
+            <StatCard
+              label="Domain"
+              value={user.battery_domain?.replace('_', ' ').toUpperCase() ?? '—'}
+              sub="Primary focus area"
+            />
+          </div>
+        </div>
+
+        {/* ── MAIN GRID ──────────────────────────────────────────────────────── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+          {/* Profile panel */}
+          <div className="lg:col-span-1 border border-neutral-800 bg-neutral-950 p-6">
+            <div className="text-[10px] uppercase tracking-widest text-neutral-500 border-b border-neutral-900 pb-4 mb-4">
+              // Operator Profile
+            </div>
+
+            {/* Avatar */}
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 bg-white text-black text-lg font-bold flex items-center justify-center flex-shrink-0">
+                {initials}
+              </div>
+              <div>
+                <div className="font-bold text-sm">{user.full_name}</div>
+                <div className="text-[10px] text-neutral-500">{user.email}</div>
+              </div>
+            </div>
+
+            <ProfileRow label="Company"       value={user.company_name} />
+            <ProfileRow label="Size"          value={user.company_size} />
+            <ProfileRow label="Country"       value={user.country} />
+            <ProfileRow label="Domain"        value={user.battery_domain} />
+            <ProfileRow label="Yrs in field"  value={user.years_in_industry} />
+            <ProfileRow label="Account ID"    value={user.id.slice(0, 8) + '...'} />
+
+            <Link
+              href="/profile/edit"
+              className="mt-6 w-full block text-center border border-neutral-800
+                hover:border-white text-xs uppercase tracking-widest py-3
+                text-neutral-400 hover:text-white transition-all"
+            >
+              Edit Profile →
+            </Link>
+          </div>
+
+          {/* Actions + activity */}
           <div className="lg:col-span-2 space-y-8">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="bg-neutral-900/50 border border-neutral-800 p-6">
-                <div className="text-[10px] text-neutral-500 uppercase mb-2">
-                  Est. Monthly Cost
-                </div>
-                <div className="text-2xl font-mono text-white">$5,850</div>
-                <div className="text-[10px] text-emerald-500 mt-1">
-                  WITHIN BUDGET
-                </div>
+
+            {/* Quick actions */}
+            <div>
+              <div className="text-[10px] uppercase tracking-widest text-neutral-500 mb-4">
+                // Quick Actions
               </div>
-              <div className="bg-neutral-900/50 border border-neutral-800 p-6">
-                <div className="text-[10px] text-neutral-500 uppercase mb-2">
-                  Tokens Processed
-                </div>
-                <div className="text-2xl font-mono text-white">0</div>
-                <div className="text-[10px] text-neutral-500 mt-1">
-                  IDLE STATE
-                </div>
-              </div>
-              <div className="bg-neutral-900/50 border border-neutral-800 p-6">
-                <div className="text-[10px] text-neutral-500 uppercase mb-2">
-                  Security Score
-                </div>
-                <div className="text-2xl font-mono text-emerald-500">
-                  98/100
-                </div>
-                <div className="text-[10px] text-neutral-500 mt-1">
-                  SOC2 COMPLIANT
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <ActionCard
+                  icon="⚡"
+                  title="New Analysis"
+                  desc="Run the 4-agent pipeline on a new battery problem to get tool recommendations and ROI estimates."
+                  href="/report"
+                />
+                <ActionCard
+                  icon="🗺"
+                  title="View Roadmap"
+                  desc="See your implementation roadmap and track progress across all recommended AI tools."
+                  href="/roadmap"
+                />
+                <ActionCard
+                  icon="🔗"
+                  title="Integrations"
+                  desc="Connect your existing tools and data sources to enrich future recommendations."
+                  href="/integration"
+                />
+                <ActionCard
+                  icon="📋"
+                  title="Consultant"
+                  desc="Access your full consulting history, past reports, and saved insights."
+                  href="/consultant"
+                />
               </div>
             </div>
 
-            {/* LIVE AGENT TERMINAL */}
-            <div className="border border-neutral-800 bg-black h-96 flex flex-col">
-              <div className="border-b border-neutral-800 p-4 flex justify-between items-center bg-neutral-950">
-                <span className="text-xs uppercase tracking-widest font-bold text-neutral-400">
-                  System Logs
-                </span>
-                <div className="flex gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50"></div>
-                  <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50"></div>
-                  <div className="w-3 h-3 rounded-full bg-green-500 border border-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse"></div>
-                </div>
+            {/* Status panel */}
+            <div className="border border-neutral-800 bg-neutral-950 p-6">
+              <div className="text-[10px] uppercase tracking-widest text-neutral-500 border-b border-neutral-900 pb-4 mb-4">
+                // System Status
               </div>
-              <div className="flex-1 p-4 font-mono text-xs space-y-2 overflow-y-auto text-neutral-400">
-                <p>
-                  <span className="text-neutral-600">[14:00:01]</span>{" "}
-                  <span className="text-emerald-500">SYSTEM</span> Project
-                  initialized by user.
-                </p>
-                <p>
-                  <span className="text-neutral-600">[14:00:02]</span>{" "}
-                  <span className="text-blue-400">AGENT_01</span> Reading SOW
-                  parameters...
-                </p>
-                <p>
-                  <span className="text-neutral-600">[14:00:05]</span>{" "}
-                  <span className="text-blue-400">AGENT_01</span> Provisioning
-                  Pinecone Index: 'fintech-invoice-v1'
-                </p>
-                <p>
-                  <span className="text-neutral-600">[14:00:08]</span>{" "}
-                  <span className="text-yellow-500">WARN</span> API Key rotation
-                  recommended within 24h.
-                </p>
-                <p>
-                  <span className="text-neutral-600">[14:00:12]</span>{" "}
-                  <span className="text-blue-400">AGENT_02</span> Validating
-                  OpenAI credits...
-                </p>
-                <p className="animate-pulse">_</p>
+              <div className="space-y-3">
+                {[
+                  { label: 'Agent Pipeline',     status: 'OPERATIONAL', ok: true },
+                  { label: 'Knowledge Base',      status: '12 TOOLS LOADED', ok: true },
+                  { label: 'JWT Auth',            status: 'ACTIVE', ok: true },
+                  { label: 'PDF Export',          status: 'COMING SOON', ok: false },
+                  { label: 'Cloud Deployment',    status: 'COMING SOON', ok: false },
+                ].map(({ label, status, ok }) => (
+                  <div key={label} className="flex items-center justify-between text-xs">
+                    <span className="text-neutral-400 uppercase tracking-wider">{label}</span>
+                    <span className={`text-[10px] font-mono px-2 py-0.5 border
+                      ${ok
+                        ? 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10'
+                        : 'text-neutral-500 border-neutral-800 bg-neutral-900'
+                      }`}>
+                      {status}
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
+
           </div>
+        </div>
 
-          {/* CARD 2: ACTION ITEMS */}
-          <div className="lg:col-span-1 space-y-6">
-            <div className="bg-neutral-900 border border-neutral-800 p-6">
-              <h3 className="text-xs uppercase tracking-widest font-bold mb-4 border-b border-neutral-800 pb-2">
-                Pending Actions
-              </h3>
-              <ul className="space-y-4">
-                <li className="flex gap-3 items-start opacity-50">
-                  <div className="mt-1 w-4 h-4 border border-emerald-500 bg-emerald-500 flex items-center justify-center text-black font-bold text-[10px]">
-                    ✓
-                  </div>
-                  <div>
-                    <div className="text-sm line-through">
-                      Approve Statement of Work
-                    </div>
-                    <div className="text-[10px] text-neutral-500">
-                      Completed 2m ago
-                    </div>
-                  </div>
-                </li>
-                <li className="flex gap-3 items-start">
-                  <div className="mt-1 w-4 h-4 border border-neutral-600 hover:border-emerald-500 cursor-pointer transition-colors"></div>
-                  <div>
-                    <div className="text-sm text-white">
-                      Connect Data Source
-                    </div>
-                    <div className="text-[10px] text-neutral-500">
-                      Required for Phase 02
-                    </div>
+        {/* ── FOOTER ─────────────────────────────────────────────────────────── */}
+        <div className="border-t border-neutral-900 pt-6 flex justify-between items-center text-[10px] text-neutral-700 uppercase tracking-widest">
+          <span>AI Consultant.io // V.4.0.2</span>
+          <span>SESSION: {user.id.slice(0, 12).toUpperCase()}...</span>
+        </div>
 
-                    {/* UPDATE THIS BUTTON */}
-                    <Link href="/integration">
-                      <button className="mt-2 text-[10px] bg-neutral-800 px-2 py-1 hover:bg-neutral-700 transition-colors">
-                        Configure API →
-                      </button>
-                    </Link>
-                  </div>
-                </li>
-                <li className="flex gap-3 items-start">
-                  <div className="mt-1 w-4 h-4 border border-neutral-600 hover:border-emerald-500 cursor-pointer transition-colors"></div>
-                  <div>
-                    <div className="text-sm text-white">
-                      Invite Team Members
-                    </div>
-                    <div className="text-[10px] text-neutral-500">
-                      0/3 Seats used
-                    </div>
-                  </div>
-                </li>
-              </ul>
-            </div>
-
-            <div className="bg-gradient-to-br from-emerald-900/20 to-black border border-emerald-900/50 p-6">
-              <h3 className="text-xs uppercase tracking-widest font-bold text-emerald-500 mb-2">
-                Need Human Override?
-              </h3>
-              <p className="text-xs text-neutral-400 mb-4">
-                Our solution architects are available for high-level debugging.
-              </p>
-              <button className="w-full bg-emerald-500/10 border border-emerald-500/50 text-emerald-500 text-xs py-2 uppercase hover:bg-emerald-500 hover:text-black transition-all">
-                Request Session
-              </button>
-            </div>
-          </div>
-        </main>
       </div>
     </div>
   );
