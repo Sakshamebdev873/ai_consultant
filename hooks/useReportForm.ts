@@ -58,16 +58,10 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api/v
 
 /**
  * Re-fetch the current user from GET /auth/me and overwrite localStorage.
- * Called right after a successful report so `reports_generated` is always
- * in sync — no re-login required.
- * Silent fail: if the user is anonymous or token expired, we just skip.
  */
 async function refreshUser(): Promise<void> {
-  const token = typeof window !== 'undefined'
-    ? localStorage.getItem('access_token')
-    : null;
-
-  if (!token) return; // anonymous — nothing to refresh
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  if (!token) return;
 
   try {
     const res = await fetch(`${API_BASE}/auth/me`, {
@@ -75,19 +69,17 @@ async function refreshUser(): Promise<void> {
     });
     if (!res.ok) return;
     const updatedUser = await res.json();
-    // Overwrite the stale user object — dashboard reads this on next mount
     localStorage.setItem('user', JSON.stringify(updatedUser));
   } catch {
-    // Network error — silently ignore; a stale count beats a crash
+    // Network error — silently ignore
   }
 }
 
 async function submitReport(v: ReportFormValues): Promise<ReportResult> {
-  const token = typeof window !== 'undefined'
-    ? localStorage.getItem('access_token')
-    : null;
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
 
-  const res = await fetch(`${API_BASE}/generate-report`, {
+  // Note: if you updated your backend router prefix to `/reports`, this should be `${API_BASE}/reports/generate-report`
+  const res = await fetch(`${API_BASE}/reports/generate-report`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -101,10 +93,10 @@ async function submitReport(v: ReportFormValues): Promise<ReportResult> {
       battery_chemistry:     v.battery_chemistry     || undefined,
       battery_application:   v.battery_application   || undefined,
       current_tools_in_use:  v.current_tools_in_use  || undefined,
-      budget_range:          v.budget_range           || undefined,
+      budget_range:          v.budget_range          || undefined,
       country:               v.country               || undefined,
       years_in_industry:     v.years_in_industry      ? Number(v.years_in_industry)      : undefined,
-      primary_goal:          v.primary_goal           || undefined,
+      primary_goal:          v.primary_goal          || undefined,
       data_availability:     v.data_availability      || undefined,
       timeline_months:       v.timeline_months        ? Number(v.timeline_months)        : undefined,
     }),
@@ -124,6 +116,53 @@ async function submitReport(v: ReportFormValues): Promise<ReportResult> {
   }
 
   return data as ReportResult;
+}
+
+// ─── NEW: Fetch All Reports ───────────────────────────────────────────────────
+
+export async function getAllReports(limit = 50, offset = 0): Promise<any> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  
+  // Construct URL with pagination parameters
+  const url = new URL(`${API_BASE}/reports/`);
+  url.searchParams.append('limit', limit.toString());
+  url.searchParams.append('offset', offset.toString());
+
+  const res = await fetch(url.toString(), {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed to fetch reports. Please ensure you are logged in.');
+  }
+
+  return await res.json();
+}
+
+// ─── NEW: Fetch Single Report by ID ───────────────────────────────────────────
+
+export async function getReportById(reportId: string): Promise<any> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+
+  const res = await fetch(`${API_BASE}/reports/${reportId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+
+  if (!res.ok) {
+    if (res.status === 403) throw new Error('Access denied. You do not have permission to view this report.');
+    if (res.status === 404) throw new Error('Report not found.');
+    throw new Error('Failed to fetch report details.');
+  }
+
+  return await res.json();
 }
 
 // ─── State ────────────────────────────────────────────────────────────────────
