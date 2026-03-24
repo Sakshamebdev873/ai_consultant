@@ -39,22 +39,11 @@ export default function LandingPage() {
       onMouseMove={handleMouseMove}
       className="min-h-screen relative overflow-hidden bg-black text-white selection:bg-emerald-500 selection:text-black font-sans"
     >
-      {/* BACKGROUND LAYER */}
-      {/* We use z-0 to keep it behind everything. 
-          The 'pointer-events-none' ensures clicks pass through to the UI. */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        {/* Optional: Add the static CSS grid here if InteractiveGrid is too heavy 
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:48px_48px]" />
-        */}
-        
+      <div className="fixed inset-0 z-0 pointer-events-none">   
         <InteractiveGrid mouseX={mX} mouseY={mY} />
-        
-        {/* Reduced opacity for blobs to maintain the sharp 'technical' look */}
         <div className="opacity-20"> 
            <BackgroundBlobs />
         </div>
-        
-        {/* Noise overlay for that 'analog monitor' feel */}
         <div className="absolute inset-0 bg-noise opacity-[0.05] mix-blend-overlay" />
       </div>
 
@@ -63,13 +52,12 @@ export default function LandingPage() {
         <Navbar />
 
         <section className="pt-32 pb-20 px-6 max-w-7xl mx-auto flex flex-col items-center">
-          {/* Hero receives global mouse coordinates for parallax effects */}
           <HeroSection globalMouseX={mX} globalMouseY={mY} />
           <ProductField />
         </section>
 
         {/* Stacked Sections */}
-        <IndustryMatrix />
+        {/* <IndustryMatrix /> */}
         <StrategyOrchestrator />
         {/* <MarketDecryptor /> */}
         <CognitiveBridge />

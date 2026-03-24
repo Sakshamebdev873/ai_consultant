@@ -121,7 +121,7 @@ export default function DashboardPage() {
       {/* ── TOP NAV ──────────────────────────────────────────────────────────── */}
       <nav className="border-b border-neutral-800 bg-neutral-950 px-8 py-4 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-6">
-          <span className="text-sm font-bold tracking-widest uppercase">AI Consultant.io</span>
+          <Link href='/' className="text-sm font-bold tracking-widest uppercase">AI Consultant.io</Link>
           <div className="hidden md:flex items-center gap-1 text-[10px] text-neutral-500">
             <div className="w-1.5 h-1.5 bg-emerald-500 animate-pulse rounded-full" />
             <span>SYSTEM NOMINAL</span>

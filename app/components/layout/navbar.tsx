@@ -2,82 +2,91 @@
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-const links = ["Marketplace", "Enterprise", "Pricing"];
+const links = [
+  { name: "Marketplace", href: "#marketplace" },
+  { name: "Enterprise", href: "#enterprise" },
+  { name: "Pricing", href: "#pricing" },
+];
 
 export const Navbar = () => {
-  const [hovered, setHovered] = useState<string | null>(null);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    setIsAuthorized(!!token);
+  }, []);
 
   return (
-    <nav className="fixed top-0 inset-x-0 z-50 px-0 sm:px-6 pt-6">
+    <nav className="fixed top-0 inset-x-0 z-50 px-4 sm:px-6 pt-6">
       <div className="max-w-7xl mx-auto">
         
-        {/* Main Nav Container */}
-        {/* Changed to neutral-950 with a sharp border for that 'hardware' feel */}
-        <div className="relative h-16 rounded-lg border border-neutral-800 bg-neutral-950/80 backdrop-blur-md flex items-center justify-between px-6 shadow-2xl shadow-black/50">
+        {/* MAIN CONTAINER */}
+        <div className="relative flex items-center justify-between h-16 px-6 rounded-xl border border-white/10 bg-black/60 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.6)]">
           
-          {/* LOGO SECTION */}
-          <div className="flex items-center gap-4">
-            {/* Icon */}
-            <div className="relative w-8 h-8 bg-white text-black rounded-sm flex items-center justify-center font-bold font-mono text-sm tracking-tighter">
-               AI
-               {/* Decorative 'status light' on the logo */}
-               <div className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full border-2 border-neutral-950"></div>
-            </div>
+          {/* 🔹 LEFT: LOGO */}
+          <Link href="/" className="flex items-center gap-3 group">
             
+            {/* Logo Box */}
+            <div className="relative w-9 h-9 flex items-center justify-center rounded-md bg-white text-black font-bold text-sm font-mono">
+              AI
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full border-2 border-black" />
+            </div>
+
             {/* Text */}
             <div className="hidden sm:flex flex-col leading-none">
-              <span className="font-bold text-white tracking-tight">AI Consultant.io</span>
-              <span className="text-[9px] text-emerald-500 uppercase tracking-widest font-mono mt-0.5">
-                System_Online
+              <span className="text-white font-semibold tracking-tight group-hover:text-emerald-400 transition-colors">
+                Ambee AI
+              </span>
+              <span className="text-[9px] text-emerald-500 font-mono uppercase tracking-widest">
+                System Online
               </span>
             </div>
-          </div>
+          </Link>
 
-          {/* CENTER LINKS */}
-          <div className="hidden md:flex items-center gap-1 bg-neutral-900/50 rounded-full px-2 py-1 border border-neutral-800/50">
-            {links.map((item) => (
+          {/* 🔹 CENTER: NAV LINKS */}
+          <div className="hidden md:flex items-center gap-1 p-1 rounded-full border border-white/10 bg-white/5 backdrop-blur-md">
+            {links.map((link) => (
               <Link
-                key={item}
-                href={`#${item.toLowerCase()}`}
-                onMouseEnter={() => setHovered(item)}
-                onMouseLeave={() => setHovered(null)}
-                className="relative px-4 py-1.5 rounded-full text-xs font-medium text-neutral-400 transition-colors hover:text-white uppercase tracking-wider"
+                key={link.name}
+                href={link.href}
+                className="relative px-4 py-1.5 text-xs font-medium uppercase tracking-wider text-neutral-400 rounded-full transition-all duration-300 hover:text-white hover:bg-white/10"
               >
-                {/* Hover Background */}
-                {hovered === item && (
-                  <span className="absolute inset-0 rounded-full bg-white/10 mix-blend-overlay transition-all" />
-                )}
-                <span className="relative z-10">{item}</span>
+                {link.name}
               </Link>
             ))}
           </div>
 
-          {/* RIGHT ACTIONS */}
-          <div className="flex items-center gap-6">
-            <Link 
-              href={'/login'} 
-              className="hidden sm:block text-xs font-mono text-neutral-400 hover:text-white uppercase tracking-widest transition-colors"
-            >
-              // Login
-            </Link>
+          {/* 🔹 RIGHT: ACTIONS */}
+          <div className="flex items-center gap-4">
+            
+            {/* Login */}
+            {!isAuthorized && (
+              <Link
+                href="/login"
+                className="hidden sm:block text-xs font-mono uppercase tracking-widest text-neutral-400 hover:text-white transition-colors"
+              >
+                // Login
+              </Link>
+            )}
 
-            <Link href="/consultant">
-              <button className="group relative overflow-hidden rounded-sm bg-white px-5 py-2.5 transition-all hover:bg-neutral-200">
+            {/* CTA */}
+            <Link href={isAuthorized ? "/dashboard" : "/register"}>
+              <button className="group relative overflow-hidden rounded-md bg-emerald-500 px-5 py-2.5 transition-all hover:bg-emerald-400 active:scale-95">
+                
+                {/* Glow */}
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-emerald-400/20 blur-xl" />
+                
                 <div className="relative z-10 flex items-center gap-2">
                   <span className="text-xs font-bold text-black uppercase tracking-widest">
-                    Initialize
+                    {isAuthorized ? "Dashboard" : "Get Started"}
                   </span>
                   <ArrowRight className="w-3 h-3 text-black transition-transform group-hover:translate-x-1" />
                 </div>
-                
-                {/* Button Scanline Effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/5 to-transparent -translate-x-full group-hover:animate-shimmer" />
               </button>
             </Link>
           </div>
-          
         </div>
       </div>
     </nav>

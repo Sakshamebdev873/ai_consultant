@@ -85,7 +85,7 @@ export const HeroSection = ({ globalMouseX, globalMouseY }: HeroProps) => {
             transition={{ delay: 0.6 }}
             className="flex flex-wrap gap-4"
           >
-            <Link href="/consultant">
+            <Link href="/login">
               <button className="group h-14 px-8 bg-white text-black font-bold text-xs uppercase tracking-widest hover:bg-emerald-400 transition-colors flex items-center gap-3">
                 <Terminal size={16} />
                 <span>Initialize Sequence</span>
