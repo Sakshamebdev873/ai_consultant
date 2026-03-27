@@ -764,9 +764,24 @@ export default function RoadmapPage() {
 
   return (
     <div className="min-h-screen bg-black text-white font-mono">
-      <Navbar />
 
-      <div className="max-w-6xl mx-auto px-5 sm:px-8 pt-28 sm:pt-32 pb-12 space-y-10">
+  {/* NAV */}
+  <nav className="border-b border-neutral-800 bg-black/80 backdrop-blur-md px-8 py-4 flex items-center justify-between sticky top-0 z-50">
+    <Link href="/" className="text-sm font-bold tracking-widest uppercase flex items-center gap-2">
+      <span className="w-2 h-2 bg-white rounded-full" />
+      AI Consultant.io
+    </Link>
+    <div className="hidden md:flex items-center gap-6 text-xs uppercase tracking-widest text-neutral-500">
+      <Link href="/dashboard" className="hover:text-white transition-colors">Dashboard</Link>
+      <Link href="/report"    className="hover:text-white transition-colors">New Report</Link>
+      <Link href="/roadmap"   className="text-emerald-400 border-b border-emerald-400 pb-0.5">Roadmap</Link>
+      <Link href="/feedback"  className="hover:text-white transition-colors">Feedback</Link>
+    </div>
+  </nav>
+
+  <div className="max-w-6xl mx-auto px-5 sm:px-8 py-4 space-y-10">
+
+      <div className="max-w-6xl mx-auto px-5 sm:px-8 pt-12 sm:pt-4 pb-12 space-y-10">
         {view === "list" && !isLoading && (
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-neutral-800 pb-8">
             <div>
@@ -842,6 +857,7 @@ export default function RoadmapPage() {
       )}
 
       <ToastContainer toasts={toasts} onDismiss={dismiss} />
+    </div>
     </div>
   );
 }
