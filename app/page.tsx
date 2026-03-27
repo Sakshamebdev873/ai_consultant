@@ -11,7 +11,7 @@ import { BackgroundBlobs } from "@/components/landing/background-blobs"; // You 
 import { InteractiveGrid } from "@/components/ui/InteractiveGrid";
 import { IndustryMatrix } from "@/components/landing/IndustryMatrix";
 import { StrategyOrchestrator } from "@/components/landing/IndustryOrchestrator";
-import  {MarketDecryptor}  from "@/components/landing/MarketDecrypter";
+import  MarketDecryptor  from "@/components/landing/MarketDecrypter";
 import { CognitiveBridge } from "@/components/landing/CognitiveBridge";
 import { ResultEngine } from "@/components/landing/ResultEngine";
 import { Footer } from "@/components/layout/Footer";
@@ -57,9 +57,8 @@ export default function LandingPage() {
         </section>
 
         {/* Stacked Sections */}
-        {/* <IndustryMatrix /> */}
+        <IndustryMatrix />
         <StrategyOrchestrator />
-        {/* <MarketDecryptor /> */}
         <CognitiveBridge />
         <ResultEngine />
         

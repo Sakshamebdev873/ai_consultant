@@ -1,119 +1,176 @@
-'use client';
+/**
+ * hooks/useRoadmap.ts
+ * ───────────────────
+ * API helpers for roadmap CRUD operations.
+ */
 
-import { useState, useEffect, useCallback } from 'react';
-import type { RoadmapPhase, ReportResult } from '@/types/report';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-export interface PhaseProgress {
-  phaseNumber: number;
-  completedActivities: Set<number>;
-  signedOff: boolean;
+function getToken(): string | null {
+  return typeof window !== "undefined"
+    ? localStorage.getItem("access_token")
+    : null;
 }
 
-export type ActiveTab = 'timeline' | 'checklist' | 'budget';
-
-// ─── Budget estimation per phase (heuristic) ─────────────────────────────────
-// Real values would come from the API — this is a reasonable fallback
-
-function estimatePhaseBudget(phase: RoadmapPhase, roiRange: string): {
-  min: number; max: number; items: { label: string; cost: string }[];
-} {
-  const budgetMap: Record<number, { min: number; max: number; items: { label: string; cost: string }[] }> = {
-    1: { min: 5000,  max: 15000,  items: [{ label: 'Data audit & readiness', cost: '$3k–$8k' },  { label: 'KPI definition workshop', cost: '$2k–$7k' }] },
-    2: { min: 10000, max: 30000,  items: [{ label: 'Vendor setup & licensing', cost: '$6k–$18k' }, { label: 'Integration engineering', cost: '$4k–$12k' }] },
-    3: { min: 8000,  max: 20000,  items: [{ label: 'Pilot deployment', cost: '$5k–$12k' },       { label: 'Staff training', cost: '$3k–$8k' }] },
-    4: { min: 5000,  max: 12000,  items: [{ label: 'Full rollout & monitoring', cost: '$4k–$9k' }, { label: 'Documentation', cost: '$1k–$3k' }] },
-  };
-  return budgetMap[phase.phase_number] ?? { min: 5000, max: 15000, items: [{ label: 'Execution costs', cost: '$5k–$15k' }] };
-}
-
-// ─── Storage helpers ──────────────────────────────────────────────────────────
-
-const STORAGE_KEY = 'roadmap_progress';
-
-function loadProgress(sessionId: string): Record<number, { completedActivities: number[]; signedOff: boolean }> {
-  try {
-    const raw = localStorage.getItem(`${STORAGE_KEY}_${sessionId}`);
-    return raw ? JSON.parse(raw) : {};
-  } catch { return {}; }
-}
-
-function saveProgress(
-  sessionId: string,
-  data: Record<number, { completedActivities: number[]; signedOff: boolean }>,
-) {
-  try {
-    localStorage.setItem(`${STORAGE_KEY}_${sessionId}`, JSON.stringify(data));
-  } catch { /* storage full */ }
-}
-
-// ─── Hook ─────────────────────────────────────────────────────────────────────
-
-export function useRoadmap() {
-  const [report, setReport]         = useState<ReportResult | null>(null);
-  const [phases, setPhases]         = useState<RoadmapPhase[]>([]);
-  const [progress, setProgress]     = useState<Record<number, { completedActivities: number[]; signedOff: boolean }>>({});
-  const [activeTab, setActiveTab]   = useState<ActiveTab>('timeline');
-  const [activePhase, setActivePhase] = useState<number>(1);
-  const [mounted, setMounted]       = useState(false);
-
-  // Load report + persisted progress on mount
-  useEffect(() => {
-    setMounted(true);
-    try {
-      const raw = sessionStorage.getItem('report_result');
-      if (raw) {
-        const r = JSON.parse(raw) as ReportResult;
-        setReport(r);
-        setPhases(r.roadmap ?? []);
-        setProgress(loadProgress(r.session_id));
-      }
-    } catch { /* no report */ }
-  }, []);
-
-  // Persist whenever progress changes
-  useEffect(() => {
-    if (report && Object.keys(progress).length > 0) {
-      saveProgress(report.session_id, progress);
-    }
-  }, [progress, report]);
-
-  const toggleActivity = useCallback((phaseNum: number, activityIdx: number) => {
-    setProgress(prev => {
-      const existing = prev[phaseNum] ?? { completedActivities: [], signedOff: false };
-      const set = new Set(existing.completedActivities);
-      set.has(activityIdx) ? set.delete(activityIdx) : set.add(activityIdx);
-      return { ...prev, [phaseNum]: { ...existing, completedActivities: Array.from(set) } };
-    });
-  }, []);
-
-  const signOffPhase = useCallback((phaseNum: number) => {
-    setProgress(prev => {
-      const existing = prev[phaseNum] ?? { completedActivities: [], signedOff: false };
-      return { ...prev, [phaseNum]: { ...existing, signedOff: !existing.signedOff } };
-    });
-  }, []);
-
-  // Derived stats
-  const totalActivities = phases.reduce((acc, p) => acc + p.key_activities.length, 0);
-  const completedActivities = Object.values(progress).reduce(
-    (acc, p) => acc + p.completedActivities.length, 0,
-  );
-  const signedOffCount = Object.values(progress).filter(p => p.signedOff).length;
-  const overallProgress = totalActivities > 0
-    ? Math.round((completedActivities / totalActivities) * 100)
-    : 0;
-
-  const getPhaseProgress = (phaseNum: number) => progress[phaseNum] ?? { completedActivities: [], signedOff: false };
-  const getBudget = (phase: RoadmapPhase) => estimatePhaseBudget(phase, report?.roi_range ?? '');
-
+function authHeaders(): Record<string, string> {
+  const token = getToken();
   return {
-    report, phases, activeTab, setActiveTab,
-    activePhase, setActivePhase,
-    overallProgress, totalActivities, completedActivities,
-    signedOffCount, mounted,
-    toggleActivity, signOffPhase,
-    getPhaseProgress, getBudget,
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
+}
+
+async function handleRes<T>(res: Response): Promise<T> {
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    const msg =
+      typeof data?.detail === "string"
+        ? data.detail
+        : "Request failed. Please try again.";
+    throw new Error(msg);
+  }
+  return res.json() as Promise<T>;
+}
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+export interface RoadmapPhase {
+  id: string;
+  phase_number: number;
+  title: string;
+  duration_weeks: number | null;
+  key_activities: string[];
+  deliverable: string | null;
+  status: "not_started" | "in_progress" | "completed" | "blocked" | "skipped";
+  progress_notes: string | null;
+  blocker: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RoadmapSummary {
+  id: string;
+  report_id: string;
+  title: string;
+  status: "active" | "completed" | "paused" | "abandoned";
+  problem_domain: string | null;
+  battery_type: string | null;
+  total_phases: number;
+  completed_phases: number;
+  progress_percent: number;
+  estimated_roi_min: number | null;
+  estimated_roi_max: number | null;
+  actual_roi: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RoadmapDetail extends RoadmapSummary {
+  user_id: string;
+  notes: string | null;
+  started_at: string | null;
+  target_completion: string | null;
+  completed_at: string | null;
+  phases: RoadmapPhase[];
+}
+
+// ── API calls ─────────────────────────────────────────────────────────────────
+
+/** List all roadmaps for current user */
+export async function listRoadmaps(
+  status?: string,
+): Promise<RoadmapSummary[]> {
+  const url = new URL(`${API_BASE}/roadmaps/`);
+  if (status) url.searchParams.append("status", status);
+
+  const res = await fetch(url.toString(), { headers: authHeaders() });
+  return handleRes<RoadmapSummary[]>(res);
+}
+
+/** Get single roadmap with phases */
+export async function getRoadmap(id: string): Promise<RoadmapDetail> {
+  const res = await fetch(`${API_BASE}/roadmaps/${id}`, {
+    headers: authHeaders(),
+  });
+  return handleRes<RoadmapDetail>(res);
+}
+
+/** Create a roadmap from a report */
+export async function createRoadmap(
+  reportId: string,
+  title?: string,
+  notes?: string,
+): Promise<RoadmapDetail> {
+  const res = await fetch(`${API_BASE}/roadmaps/`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({
+      report_id: reportId,
+      title: title || undefined,
+      notes: notes || undefined,
+    }),
+  });
+  return handleRes<RoadmapDetail>(res);
+}
+
+/** Update roadmap metadata */
+export async function updateRoadmap(
+  id: string,
+  data: {
+    title?: string;
+    status?: string;
+    notes?: string;
+    actual_roi?: number;
+    target_completion?: string;
+  },
+): Promise<RoadmapDetail> {
+  const res = await fetch(`${API_BASE}/roadmaps/${id}`, {
+    method: "PUT",
+    headers: authHeaders(),
+    body: JSON.stringify(data),
+  });
+  return handleRes<RoadmapDetail>(res);
+}
+
+/** Delete a roadmap */
+export async function deleteRoadmap(id: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/roadmaps/${id}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  if (!res.ok) {
+    throw new Error("Failed to delete roadmap");
+  }
+}
+
+/** Update a single phase */
+export async function updatePhase(
+  roadmapId: string,
+  phaseId: string,
+  data: {
+    status?: string;
+    progress_notes?: string;
+    blocker?: string;
+  },
+): Promise<RoadmapDetail> {
+  const res = await fetch(
+    `${API_BASE}/roadmaps/${roadmapId}/phases/${phaseId}`,
+    {
+      method: "PATCH",
+      headers: authHeaders(),
+      body: JSON.stringify(data),
+    },
+  );
+  return handleRes<RoadmapDetail>(res);
+}
+
+/** Reset all phases */
+export async function resetRoadmap(id: string): Promise<RoadmapDetail> {
+  const res = await fetch(`${API_BASE}/roadmaps/${id}/reset`, {
+    method: "POST",
+    headers: authHeaders(),
+  });
+  return handleRes<RoadmapDetail>(res);
 }
