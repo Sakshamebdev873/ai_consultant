@@ -12,20 +12,6 @@ import {
 
 // ─── Known tools from KB ──────────────────────────────────────────────────────
 
-const KNOWN_TOOLS = [
-  'Siemens Xcelerator (Battery Manufacturing)',
-  'Ansys Battery Simulation Suite',
-  'C3.ai Predictive Maintenance',
-  'BatteryBits AI Platform',
-  'Voltaiq Enterprise Analytics',
-  'Honeywell Forge for Energy Storage',
-  'Microsoft Azure Digital Twins (Battery)',
-  'Palantir Foundry for Manufacturing',
-  'IBM Maximo + Battery Pack',
-  'NVIDIA Omniverse (Battery Design)',
-  'Dassault Systèmes CATIA (Battery)',
-  'Autodesk Fusion (EV Battery)',
-];
 
 // ─── Primitives ───────────────────────────────────────────────────────────────
 
@@ -383,15 +369,15 @@ export default function FeedbackPage() {
     selectReport, clearSelection,
     form, isSubmitting, isSuccess, submitError, response,
     setField, setRating, toggleToolChosen, toggleToolRejected,
-    submitFeedback, reset,
+    submitFeedback, reset,toolNames
   } = useFeedbackForm();
 
   // Tools to show in chip selectors — prefer the selected report's recommendations,
   // fall back to the full known KB list
   const toolList =
-    selectedReport?.tools_recommended?.length
-      ? [...new Set([...selectedReport.tools_recommended, ...KNOWN_TOOLS])]
-      : KNOWN_TOOLS;
+  selectedReport?.tools_recommended?.length
+    ? [...new Set([...selectedReport.tools_recommended, ...toolNames])]
+    : toolNames;
 
   return (
     <div className="min-h-screen bg-black text-white font-mono selection:bg-emerald-500/30">

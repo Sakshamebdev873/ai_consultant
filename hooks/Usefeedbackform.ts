@@ -106,7 +106,12 @@ function validate(form: FeedbackFormState): string | null {
     return 'Overall rating (1–5) is required.';
   return null;
 }
-
+// Add this fetcher
+async function fetchToolNames(): Promise<string[]> {
+  const res = await fetch(`${API_BASE}/tools/`);
+  if (!res.ok) return [];
+  return res.json();
+}
 // ─── API: fetch all user reports ──────────────────────────────────────────────
 
 async function fetchUserReports(): Promise<ReportSummary[]> {
@@ -211,6 +216,7 @@ export interface UseFeedbackFormReturn {
   toggleToolRejected: (tool: string) => void;
   submitFeedback: () => Promise<void>;
   reset: () => void;
+  toolNames : string[] | []
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
@@ -228,7 +234,7 @@ export function useFeedbackForm(): UseFeedbackFormReturn {
   const [isSuccess, setSuccess]       = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [response, setResponse]       = useState<FeedbackResponse | null>(null);
-
+const [toolNames, setToolNames] = useState<string[]>([]);
   // ── Fetch reports on mount ─────────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
@@ -251,6 +257,7 @@ export function useFeedbackForm(): UseFeedbackFormReturn {
               setForm(defaultForm(match.session_id));
             }
           }
+          fetchToolNames().then(setToolNames);
         } catch { /* ignore corrupted storage */ }
       })
       .catch(err => { if (!cancelled) setReportsError(err.message); })
@@ -330,6 +337,6 @@ export function useFeedbackForm(): UseFeedbackFormReturn {
     selectReport, clearSelection,
     form, isSubmitting, isSuccess, submitError, response,
     setField, setRating, toggleToolChosen, toggleToolRejected,
-    submitFeedback, reset,
+    submitFeedback, reset,toolNames
   };
 }
